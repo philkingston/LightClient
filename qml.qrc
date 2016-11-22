@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>ColorWheel.qml</file>
+        <file>content/CheckerBoard.qml</file>
+        <file>content/NumberBox.qml</file>
+        <file>content/ColorUtils.js</file>
+        <file>content/PanelBorder.qml</file>
+        <file>content/VerticalSlider.qml</file>
+        <file>content/Wheel.qml</file>
+        <file>content/mathUtils.js</file>
+        <file>logo.png</file>
+        <file>wheel.png</file>
+    </qresource>
+</RCC>
