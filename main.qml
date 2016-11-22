@@ -11,7 +11,7 @@ Window {
     width: 480
     height: 640
     title: qsTr("LED Colour selector")
-    property int ledCount: 64
+    property int ledCount: 50
 
     ColumnLayout {
         anchors.fill: parent
@@ -144,69 +144,55 @@ Window {
         }
 
         ColumnLayout {
-            id: type3
+            id: clock
             visible: false
             Layout.fillWidth: true
             Layout.fillHeight: true
 
             ColorWheel {
-                id: type3wheel1
+                id: clockWheel1
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onColorRGBAChanged: {
-                    type3.update()
-                }
             }
 
             ColorWheel {
-                id: type3wheel2
+                id: clockWheel2
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onColorRGBAChanged: {
-                    type3.update()
-                }
             }
 
-            ColorWheel {
-                id: type3wheel3
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                onColorRGBAChanged: {
-                    type3.update()
-                }
-            }
+            Timer {
+                running: clock.visible == true
+                repeat: true
+                interval: 1000
+                onTriggered: {
+                    var d = new Date()
+                    if(socket.status == WebSocket.Open) {
+                        var newBytes = ''
+                        for(var i = 0; i < ledCount; i++) {
+                            var p = i / ledCount
 
-            function update() {
-                if(socket.status == WebSocket.Open) {
-                    var newBytes = ''
-                    for(var i = 0; i < ledCount; i++) {
-                        var p = i / ledCount
+                            var r1 = clockWheel1.colorRGBA.x
+                            var g1 = clockWheel1.colorRGBA.y
+                            var b1 = clockWheel1.colorRGBA.z
 
-                        var r1 = type3wheel1.colorRGBA.x
-                        var g1 = type3wheel1.colorRGBA.y
-                        var b1 = type3wheel1.colorRGBA.z
+                            var r2 = clockWheel2.colorRGBA.x
+                            var g2 = clockWheel2.colorRGBA.y
+                            var b2 = clockWheel2.colorRGBA.z
 
-                        var r2 = type3wheel2.colorRGBA.x
-                        var g2 = type3wheel2.colorRGBA.y
-                        var b2 = type3wheel2.colorRGBA.z
+                            var q = Qt.rgba(r1, g1, b1, 1)
+                            if(p > d.getSeconds() / 60)
+                                var q = Qt.rgba(r2, g2, b2, 1)
 
-                        var r3 = type3wheel3.colorRGBA.x
-                        var g3 = type3wheel3.colorRGBA.y
-                        var b3 = type3wheel3.colorRGBA.z
+                            newBytes += String.fromCharCode(q.r * 255)
+                            newBytes += String.fromCharCode(q.g * 255)
+                            newBytes += String.fromCharCode(q.b * 255)
 
-                        var s1 = Math.max(0, wave(p, 3))
-                        var s2 = Math.max(0, wave(p + 0.33, 3))
-                        var s3 = Math.max(0, wave(p + 0.66, 3))
-
-                        var q = Qt.rgba(r1 * s1, g1 * s1, b1 * s1, 1)
-                        q = Qt.tint(q, Qt.rgba(r2 * s2, g2 * s2, b2 * s2, s2))
-                        q = Qt.tint(q, Qt.rgba(r3 * s3, g3 * s3, b3 * s3, s3))
-
-                        newBytes += String.fromCharCode(q.r * 255)
-                        newBytes += String.fromCharCode(q.g * 255)
-                        newBytes += String.fromCharCode(q.b * 255)
+                            if(!!preview.children[ledCount - i - 1] && !!preview.children[ledCount - i - 1].color)
+                                preview.children[ledCount - i - 1].color = q
+                        }
+                        socket.sendTextMessage(newBytes)
                     }
-                    socket.sendTextMessage(newBytes)
                 }
             }
         }
@@ -215,10 +201,46 @@ Window {
             Layout.fillWidth: true
             Layout.preferredHeight: 40
 
+            Button {
+                Layout.fillWidth: true
+                text: "1 colour"
+                onClicked: {
+                    type2.visible = false
+                    clock.visible = false
+                    type1.visible = true
+                }
+            }
+
+            Button {
+                Layout.fillWidth: true
+                text: "2 colours"
+                onClicked: {
+                    type1.visible = false
+                    clock.visible = false
+                    type2.visible = true
+                }
+            }
+
+            Button {
+                Layout.fillWidth: true
+                text: "clock"
+                onClicked: {
+                    type1.visible = false
+                    type2.visible = false
+                    clock.visible = true
+                }
+            }
+        }
+
+        RowLayout {
+            visible: !socket.active
+            Layout.fillWidth: true
+            Layout.preferredHeight: 40
+
             TextField {
                 Layout.fillWidth: true
                 id: address
-                text: "10.0.0.109:1234"
+                text: "office.tec20.co.uk:1234"
             }
 
             Button {
@@ -238,7 +260,6 @@ Window {
                 console.log("Error: " + socket.errorString)
                 active = false
             } else if (socket.status == WebSocket.Open) {
-                console.log('Connected')
             } else if (socket.status == WebSocket.Closed) {
                 active = false
             }
