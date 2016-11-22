@@ -112,7 +112,7 @@ Window {
             }
 
             function update() {
-//                if(socket.status == WebSocket.Open) {
+                if(socket.status == WebSocket.Open) {
                     var newBytes = ''
                     for(var i = 0; i < ledCount; i++) {
                         var p = (i + type2.offset % ledCount) / ledCount
@@ -129,8 +129,7 @@ Window {
                         var s2 = Math.max(0, wave(p + 0.5, 1))
 
                         var q = Qt.rgba(r1 * s1, g1 * s1, b1 * s1, 1)
-//                        q = Qt.tint(q, Qt.rgba(r2 * s2, g2 * s2, b2 * s2, s2))
-                        q = Qt.tint(q, Qt.rgba(r2, g2, b2, s2))
+                        q = Qt.tint(q, Qt.rgba(r2 * s2, g2 * s2, b2 * s2, s2))
 
                         newBytes += String.fromCharCode(q.r * 255)
                         newBytes += String.fromCharCode(q.g * 255)
@@ -139,8 +138,8 @@ Window {
                         if(!!preview.children[i] && !!preview.children[i].color)
                             preview.children[i].color = q
                     }
-//                    socket.sendTextMessage(newBytes)
-//                }
+                    socket.sendTextMessage(newBytes)
+                }
             }
         }
 
@@ -229,22 +228,22 @@ Window {
                 }
             }
         }
-
     }
 
     WebSocket {
         id: socket
-        url: "ws://" + address
+        url: "ws://" + address.text
         onStatusChanged: {
             if (socket.status == WebSocket.Error) {
                 console.log("Error: " + socket.errorString)
                 active = false
             } else if (socket.status == WebSocket.Open) {
+                console.log('Connected')
             } else if (socket.status == WebSocket.Closed) {
                 active = false
             }
         }
-        active: true
+        active: false
     }
 
     function wave(v, m) {
